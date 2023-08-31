@@ -5,9 +5,11 @@ const app = express();
 const hbs = require("hbs");
 const bcrypt = require("bcryptjs");
 const jwt = require("bcryptjs");
+const cookieParser = require("cookie-parser");
 
 require("./db/conn");
 const Register = require("./models/registers");
+const { log } = require('console');
 const port = 8000;
 
 const static_path = path.join(__dirname, "../public");
@@ -16,6 +18,7 @@ const partials_path = path.join(__dirname, "../templates/partials");
 
 // kisi form ke data ko get krne ke liye
 app.use(express.json());
+app.use(cookieParser());  // middleware for cookie
 app.use(express.urlencoded({extended:false})); 
 
 app.use(express.static(static_path));
@@ -65,8 +68,16 @@ app.post("/register", async (req,res) => {
         const token =  await registerEmployee.generateAuthToken();
 
         console.log("the token part" + token);
-        // password hashing
         
+        // the res.cookie() function is used to set the cookie name to value.
+        // the value parameter may be string or object converted to json
+
+        res.cookie("jwt",token, {
+            expires:new Date(Date.now()+30000),
+            httpOnly:true
+        })
+        
+        console.log(cookie);
         const registered = await registerEmployee.save();
 
         res.status(201).render("index");
@@ -84,6 +95,7 @@ app.post("/login", async (req,res) => {
     try{
          const email = req.body.email;
          const password = req.body.password;
+
          const useremail = await Register.findOne({email:email});
         
          const isMatch =await bcrypt.compare(password,useremail.password);
@@ -91,6 +103,13 @@ app.post("/login", async (req,res) => {
          const token =  await useremail.generateAuthToken();
 
          console.log("the token part" + token);
+
+         res.cookie("jwt",token, {
+            expires:new Date(Date.now()+ 50000),
+            httpOnly:true
+        });
+        
+        console.log(`this is cookie awesome ${req.cookies.jwt}`);
 
          if(isMatch) {
             res.status(201).render("index");
