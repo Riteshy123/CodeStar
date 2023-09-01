@@ -6,6 +6,7 @@ const hbs = require("hbs");
 const bcrypt = require("bcryptjs");
 const jwt = require("bcryptjs");
 const cookieParser = require("cookie-parser");
+const auth = require("./middleware/auth");
 
 require("./db/conn");
 const Register = require("./models/registers");
@@ -27,10 +28,14 @@ app.set("views", template_path);
 hbs.registerPartials(partials_path);
 
 console.log(process.env.SECRET_KEY);
+
 app.get("/", (req,res) => {
     res.render("index");
 });
 
+app.get("/secret", auth, (req,res) => {
+    res.render("secret");
+})
 app.get("/register", (req,res) => {
     res.render("register");
 })
@@ -73,7 +78,7 @@ app.post("/register", async (req,res) => {
         // the value parameter may be string or object converted to json
 
         res.cookie("jwt",token, {
-            expires:new Date(Date.now()+30000),
+            expires:new Date(Date.now()+ 600000),
             httpOnly:true
         })
         
@@ -109,7 +114,7 @@ app.post("/login", async (req,res) => {
             httpOnly:true
         });
         
-        console.log(`this is cookie awesome ${req.cookies.jwt}`);
+        // console.log(`this is cookie awesome ${req.cookies.jwt}`);
 
          if(isMatch) {
             res.status(201).render("index");
