@@ -4,9 +4,10 @@ const path = require("path");
 const app = express();
 const hbs = require("hbs");
 const bcrypt = require("bcryptjs");
-const jwt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const auth = require("./middleware/auth");
+
 
 require("./db/conn");
 const Register = require("./models/registers");
@@ -36,6 +37,31 @@ app.get("/", (req,res) => {
 app.get("/secret", auth, (req,res) => {
     res.render("secret");
 })
+
+app.get("/logout", auth, async(req,res) => {
+
+    try{
+         console.log(req.user);
+
+        //  req.user.tokens = req.user.tokens.filter((currElement) => {
+        //     return currElement.token !== req.token
+
+        // })
+
+        // logout from all device
+          req.user.tokens = [];
+
+         res.clearCookie("jwt");
+
+         console.log("logout successfully");
+         await req.user.save();
+         res.render("login");
+
+    }catch(error) {
+        res.status(500).send(error);
+    }
+})
+
 app.get("/register", (req,res) => {
     res.render("register");
 })
@@ -46,6 +72,10 @@ app.get("/login", (req,res) => {
 
 app.get("/login", (req, res) =>{
     res.render("login");
+})
+
+app.get("/registration", (req,res) => {
+    res.render("register");
 })
 
 // create a new user in our database
@@ -110,7 +140,7 @@ app.post("/login", async (req,res) => {
          console.log("the token part" + token);
 
          res.cookie("jwt",token, {
-            expires:new Date(Date.now()+ 50000),
+            expires:new Date(Date.now()+ 60000000),
             httpOnly:true
         });
         
