@@ -112,7 +112,6 @@ app.post("/register", async (req,res) => {
             httpOnly:true
         })
         
-        console.log(cookie);
         const registered = await registerEmployee.save();
 
         res.status(201).render("index");
